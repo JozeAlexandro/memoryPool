@@ -4,7 +4,12 @@ CONFIG -= app_bundle
 CONFIG -= qt
 
 SOURCES += \
-        main.c
+        main.c \
+        memoryPoolImpl/linearMemoryPool/src/linearMemoryPool.c \
+        memoryPoolImpl/linkedList/src/linkedList.c
 
 HEADERS += \
-    memoryPoolIface.h
+    memoryPoolIface.h \
+    memoryPoolImpl/linearMemoryPool/h/linearMemoryPool.h \
+    memoryPoolImpl/linearMemoryPool/src/linearMemoryPoolP.h \
+    memoryPoolImpl/linkedList/h/linkedList.h
