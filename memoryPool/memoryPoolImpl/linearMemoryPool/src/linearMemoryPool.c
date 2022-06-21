@@ -5,6 +5,7 @@
 
 /// public
 
+/// @todo add algorithm
 sMemoryPoolIface *linearMemoryPoolMake( void )
 {
     mLinearMemoryPool.allocate = linearMemoryPoolAllocate;
@@ -26,14 +27,12 @@ sMemoryPoolIface *linearMemoryPoolMake( void )
 
 static void *linearMemoryPoolAllocate( size_t size )
 {
-    sMemoryBlockHeader *pMemoryDescriptor = (sMemoryBlockHeader *) mMemoryPool;
+    sMemoryBlockHeader *pMemoryDescriptor = findMemoryBlock( size, ALG_FIRST_MATCH );
 
-    while( !pMemoryDescriptor->isAvail && ( ( uint8_t* )pMemoryDescriptor < ( mMemoryPool + LINEAR_POOL_SIZE ) ) )
-        pMemoryDescriptor = ( sMemoryBlockHeader * )( (uint8_t *)pMemoryDescriptor + pMemoryDescriptor->size + sizeof(sMemoryBlockHeader) );
-
-    if( ( uint8_t* )pMemoryDescriptor < ( mMemoryPool + LINEAR_POOL_SIZE ) )
+    /// @todo external checking if( ( uint8_t* )pMemoryDescriptor < ( mMemoryPool + LINEAR_POOL_SIZE ) )
+    if( pMemoryDescriptor )
     {
-        sMemoryBlockHeader newBlockDescriptor = { true, pMemoryDescriptor->size - size - sizeof(sMemoryBlockHeader) };
+        sMemoryBlockHeader newBlockDescriptor = { true, pMemoryDescriptor->size - size - sizeof( sMemoryBlockHeader ) };
 
         pMemoryDescriptor->isAvail = false;
         pMemoryDescriptor->size = size;
@@ -42,7 +41,7 @@ static void *linearMemoryPoolAllocate( size_t size )
                 &newBlockDescriptor,
                 sizeof( sMemoryBlockHeader ) );
 
-        return ((uint8_t*) pMemoryDescriptor) + sizeof( sMemoryBlockHeader );
+        return ( ( uint8_t* ) pMemoryDescriptor ) + sizeof( sMemoryBlockHeader );
     }
     else
     {
@@ -52,7 +51,7 @@ static void *linearMemoryPoolAllocate( size_t size )
 
 
 static bool linearMemoryPoolDeallocate( void *pData )
-{printf("sizeof %llu\n", sizeof( sMemoryBlockHeader ));
+{
     sMemoryBlockHeader *pMemoryDescriptor = (sMemoryBlockHeader *)(( (uint8_t *)pData ) - sizeof( sMemoryBlockHeader ));
     pMemoryDescriptor->isAvail = true;
 
@@ -61,15 +60,15 @@ static bool linearMemoryPoolDeallocate( void *pData )
     while(nextDescriptor->isAvail && ( ( uint8_t* )nextDescriptor < ( mMemoryPool + LINEAR_POOL_SIZE ) ) )
     {
         pMemoryDescriptor->size += nextDescriptor->size + sizeof( sMemoryBlockHeader );
-        nextDescriptor = (sMemoryBlockHeader *)( ( ( uint8_t* )nextDescriptor ) + (nextDescriptor->size + sizeof( sMemoryBlockHeader ) ) );
+        nextDescriptor = getNextMemBlock( nextDescriptor );
     }
 
-    sMemoryBlockHeader *pPrevMemoryDescriptor = (sMemoryBlockHeader *) mMemoryPool;
+    sMemoryBlockHeader *pPrevMemoryDescriptor = getFirstMemBlock();
     size_t lastSize = 0;
     while( pPrevMemoryDescriptor != pMemoryDescriptor )
     {
         lastSize = pPrevMemoryDescriptor->size;
-        pPrevMemoryDescriptor = ( sMemoryBlockHeader * )(((uint8_t*)pPrevMemoryDescriptor) + pPrevMemoryDescriptor->size + sizeof( sMemoryBlockHeader ) );
+        pPrevMemoryDescriptor = getNextMemBlock( pPrevMemoryDescriptor );
     }
 
     pPrevMemoryDescriptor = ( sMemoryBlockHeader * )(((uint8_t*)pPrevMemoryDescriptor) - lastSize - sizeof( sMemoryBlockHeader ) );
@@ -83,14 +82,19 @@ static bool linearMemoryPoolDeallocate( void *pData )
 }
 
 
+
+
+
+
+
 #include <stdio.h>
 void tempPrint()
 {
-    sMemoryBlockHeader *pMemoryDescriptor = (sMemoryBlockHeader *)(mMemoryPool);
+    sMemoryBlockHeader *pMemoryDescriptor = getFirstMemBlock();
     printf("Memory:\n");
     while( ( uint8_t* )pMemoryDescriptor < ( mMemoryPool + LINEAR_POOL_SIZE ) )
     {
-        printf("Block %p iavail = %d, size = %u\n", pMemoryDescriptor, pMemoryDescriptor->isAvail, pMemoryDescriptor->size );
+        printf("Block %p iavail = %d, size = %zu\n", pMemoryDescriptor, pMemoryDescriptor->isAvail, pMemoryDescriptor->size );
         pMemoryDescriptor = (sMemoryBlockHeader*)((uint8_t*)pMemoryDescriptor + ( pMemoryDescriptor->size + sizeof (sMemoryBlockHeader)));
     }
 }
@@ -98,9 +102,9 @@ void tempPrint()
 
 
 
-sMemoryDescriptor findMemoryBlock( size_t size, eAlgMatch algrtm )
+sMemoryBlockHeader * findMemoryBlock( size_t size, eAlgMatch algrtm )
 {
-  /*  switch( algrtm )
+    switch( algrtm )
     {
     case ALG_FIRST_MATCH:
         return findFirstMatchMemoryBlock( size );
@@ -113,20 +117,38 @@ sMemoryDescriptor findMemoryBlock( size_t size, eAlgMatch algrtm )
     case ALG_BEST_MATCH:
         return findBestMatchMemoryBlock( size );
         break;
-    }*/
+    }
 }
 
-uint8_t *findFirstMatchMemoryBlock( size_t size )
+sMemoryBlockHeader *findFirstMatchMemoryBlock( size_t size )
 {
+    sMemoryBlockHeader *pMemoryDescriptor = getFirstAvailMemBlock();
 
+    while( true )
+    {
+        if( !isMemoryRange( ( uint8_t* )pMemoryDescriptor ) )
+            return NULL;
+        else if( size < pMemoryDescriptor->size )
+            return pMemoryDescriptor;
+        else
+            pMemoryDescriptor = getNextAvailMemBlock( pMemoryDescriptor );
+    };
 }
 
-uint8_t *findBestMatchMemoryBlock( size_t size )
+sMemoryBlockHeader *findBestMatchMemoryBlock( size_t size )
 {
+    sMemoryBlockHeader *pMemoryDescriptor = getFirstAvailMemBlock();
 
+
+
+    return pMemoryDescriptor;
 }
 
-uint8_t *findLastMatchMemoryBlock( size_t size )
+sMemoryBlockHeader *findLastMatchMemoryBlock( size_t size )
 {
+    sMemoryBlockHeader *pMemoryDescriptor = getFirstAvailMemBlock();
 
+
+
+    return pMemoryDescriptor;
 }
