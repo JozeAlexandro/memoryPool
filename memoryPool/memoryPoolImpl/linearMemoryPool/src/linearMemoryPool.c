@@ -33,7 +33,7 @@ static void *linearMemoryPoolAllocate( size_t size )
 
     if( ( uint8_t* )pMemoryDescriptor < ( mMemoryPool + LINEAR_POOL_SIZE ) )
     {
-        sMemoryBlockHeader newBlockDescriptor = { true, pMemoryDescriptor->size - size };
+        sMemoryBlockHeader newBlockDescriptor = { true, pMemoryDescriptor->size - size - sizeof(sMemoryBlockHeader) };
 
         pMemoryDescriptor->isAvail = false;
         pMemoryDescriptor->size = size;
@@ -52,25 +52,32 @@ static void *linearMemoryPoolAllocate( size_t size )
 
 
 static bool linearMemoryPoolDeallocate( void *pData )
-{
+{printf("sizeof %llu\n", sizeof( sMemoryBlockHeader ));
     sMemoryBlockHeader *pMemoryDescriptor = (sMemoryBlockHeader *)(( (uint8_t *)pData ) - sizeof( sMemoryBlockHeader ));
     pMemoryDescriptor->isAvail = true;
 
-    /// @todo Взад-назад доталова
+    /// @todo Взад-назад до талова
     sMemoryBlockHeader *nextDescriptor = (sMemoryBlockHeader *)( ( ( uint8_t* )pMemoryDescriptor ) + (pMemoryDescriptor->size + sizeof( sMemoryBlockHeader ) ) );
-    while(nextDescriptor->isAvail && ( ( uint8_t* )pMemoryDescriptor < ( mMemoryPool + LINEAR_POOL_SIZE ) ) )
+    while(nextDescriptor->isAvail && ( ( uint8_t* )nextDescriptor < ( mMemoryPool + LINEAR_POOL_SIZE ) ) )
     {
         pMemoryDescriptor->size += nextDescriptor->size + sizeof( sMemoryBlockHeader );
         nextDescriptor = (sMemoryBlockHeader *)( ( ( uint8_t* )nextDescriptor ) + (nextDescriptor->size + sizeof( sMemoryBlockHeader ) ) );
     }
 
-    sMemoryBlockHeader *prevDescriptor = (sMemoryBlockHeader *)( ( ( uint8_t* )pMemoryDescriptor ) - ( pMemoryDescriptor->size + sizeof( sMemoryBlockHeader ) ) );
-    while(prevDescriptor->isAvail && ( ( uint8_t* )prevDescriptor > mMemoryPool ) )
+    sMemoryBlockHeader *pPrevMemoryDescriptor = (sMemoryBlockHeader *) mMemoryPool;
+    size_t lastSize = 0;
+    while( pPrevMemoryDescriptor != pMemoryDescriptor )
     {
-        prevDescriptor->size += pMemoryDescriptor->size + sizeof( sMemoryBlockHeader );
-        pMemoryDescriptor = prevDescriptor;
-        prevDescriptor = (sMemoryBlockHeader *)( ( ( uint8_t* )nextDescriptor ) - ( nextDescriptor->size + sizeof( sMemoryBlockHeader ) ) );
+        lastSize = pPrevMemoryDescriptor->size;
+        pPrevMemoryDescriptor = ( sMemoryBlockHeader * )(((uint8_t*)pPrevMemoryDescriptor) + pPrevMemoryDescriptor->size + sizeof( sMemoryBlockHeader ) );
     }
+
+    pPrevMemoryDescriptor = ( sMemoryBlockHeader * )(((uint8_t*)pPrevMemoryDescriptor) - lastSize - sizeof( sMemoryBlockHeader ) );
+
+    if( pPrevMemoryDescriptor->isAvail )
+        pPrevMemoryDescriptor->size += pMemoryDescriptor->size + sizeof( sMemoryBlockHeader );
+
+
 
     return true;
 }
@@ -83,7 +90,7 @@ void tempPrint()
     printf("Memory:\n");
     while( ( uint8_t* )pMemoryDescriptor < ( mMemoryPool + LINEAR_POOL_SIZE ) )
     {
-        printf("Block %p iavail = %d, size = 0x%zx\n", pMemoryDescriptor, pMemoryDescriptor->isAvail, pMemoryDescriptor->size );
+        printf("Block %p iavail = %d, size = %u\n", pMemoryDescriptor, pMemoryDescriptor->isAvail, pMemoryDescriptor->size );
         pMemoryDescriptor = (sMemoryBlockHeader*)((uint8_t*)pMemoryDescriptor + ( pMemoryDescriptor->size + sizeof (sMemoryBlockHeader)));
     }
 }

@@ -4,6 +4,10 @@
 
 int main()
 {
+
+    /// @todo @bug Увеличивается на кол-во выделений/освобождений * 0x10
+
+
     sMemoryPoolIface * pPool = linearMemoryPoolMake();
     tempPrint();
     void *a1 = pPool->allocate(10);
@@ -17,8 +21,6 @@ int main()
     tempPrint();
     void *a4 = pPool->allocate(40);
 
-    tempPrint();
-    void *a5 = pPool->allocate(50);
 
     tempPrint();
     pPool->deallocate(a1);
@@ -31,9 +33,6 @@ int main()
 
     tempPrint();
     pPool->deallocate(a4);
-
-    tempPrint();
-    pPool->deallocate(a5);
 
     tempPrint();
 
