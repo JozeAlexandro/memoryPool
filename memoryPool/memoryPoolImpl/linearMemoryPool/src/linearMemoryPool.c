@@ -27,7 +27,7 @@ sMemoryPoolIface *linearMemoryPoolMake( void )
 
 static void *linearMemoryPoolAllocate( size_t size )
 {
-    sMemoryBlockHeader *pMemoryDescriptor = findMemoryBlock( size, ALG_FIRST_MATCH );
+    sMemoryBlockHeader *pMemoryDescriptor = findMemoryBlock( size, ALG_LAST_MATCH );
 
     /// @todo external checking if( ( uint8_t* )pMemoryDescriptor < ( mMemoryPool + LINEAR_POOL_SIZE ) )
     if( pMemoryDescriptor )
@@ -148,7 +148,19 @@ sMemoryBlockHeader *findLastMatchMemoryBlock( size_t size )
 {
     sMemoryBlockHeader *pMemoryDescriptor = getFirstAvailMemBlock();
 
+    sMemoryBlockHeader *last = NULL;
 
+    while( true )
+    {/// @todo if null
+        if(NULL == pMemoryDescriptor)
+            return last;
+        else if( !isMemoryRange( ( uint8_t* )pMemoryDescriptor ) )
+            return NULL;
+        else if( size < pMemoryDescriptor->size )
+            last = pMemoryDescriptor;
+
+        pMemoryDescriptor = getNextAvailMemBlock( pMemoryDescriptor );
+    };
 
     return pMemoryDescriptor;
 }

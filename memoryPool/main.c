@@ -10,35 +10,41 @@ int main()
 
     sMemoryPoolIface * pPool = linearMemoryPoolMake();
     tempPrint();
-    void *a1 = pPool->allocate(10);
+    void *a1 = pPool->allocate(30);
 
     tempPrint();
-    void *a2 = pPool->allocate(20);
+    void *a2 = pPool->allocate(30);
 
-    tempPrint();
-    pPool->deallocate(a1);
+
 
     tempPrint();
     void *a3 = pPool->allocate(30);
 
     tempPrint();
-    void *a4 = pPool->allocate(40);
+    void *a4 = pPool->allocate(30);
+
 
     tempPrint();
     pPool->deallocate(a4);
 
     tempPrint();
-    a1 = pPool->allocate(10);
+    pPool->deallocate(a2);
 
-    tempPrint();
-    pPool->deallocate(a3);
+
 
 
     tempPrint();
     pPool->deallocate(a1);
 
     tempPrint();
-    pPool->deallocate(a2);
+    a1 = pPool->allocate(30);
+
+    tempPrint();
+    pPool->deallocate(a3);
+
+    tempPrint();
+    pPool->deallocate(a1);
+
 
     tempPrint();
 
