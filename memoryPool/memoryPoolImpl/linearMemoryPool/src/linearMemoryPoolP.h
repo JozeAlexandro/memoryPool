@@ -7,7 +7,11 @@
 
 #include "../../linkedList/h/linkedList.h"
 
-// enum { LINEAR_POOL_SIZE = 256 };
+#define LINEAR_POOL_SIZE 2560
+
+#ifndef LINEAR_POOL_SIZE
+#error не определен LINEAR_POOL_SIZE
+#endif // LINEAR_POOL_SIZE
 
 
 typedef enum

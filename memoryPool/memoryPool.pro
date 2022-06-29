@@ -5,11 +5,9 @@ CONFIG -= qt
 
 SOURCES += \
         main.c \
-        memoryPoolImpl/linearMemoryPool/src/linearMemoryPool.c \
-        memoryPoolImpl/linkedList/src/linkedList.c
+        memoryPoolImpl/linearMemoryPool/src/linearMemoryPool.c
 
 HEADERS += \
     memoryPoolIface.h \
     memoryPoolImpl/linearMemoryPool/h/linearMemoryPool.h \
-    memoryPoolImpl/linearMemoryPool/src/linearMemoryPoolP.h \
-    memoryPoolImpl/linkedList/h/linkedList.h
+    memoryPoolImpl/linearMemoryPool/src/linearMemoryPoolP.h
