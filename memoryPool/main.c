@@ -5,45 +5,60 @@
 int main()
 {
 
-    /// @todo @bug Увеличивается на кол-во выделений/освобождений * 0x10
-
 
     sMemoryPoolIface * pPool = linearMemoryPoolMake();
     tempPrint();
-    void *a1 = pPool->allocate(30);
+    void *a50 = pPool->allocate(50);
 
     tempPrint();
-    void *a2 = pPool->allocate(30);
+    void *a30 = pPool->allocate(30);
 
+    tempPrint();
+    void *a70 = pPool->allocate(70);
+
+    tempPrint();
+    void *a90 = pPool->allocate(90);
+
+    tempPrint();
+    void *a2 = pPool->allocate(2);
+
+/*
+    tempPrint();
+    pPool->deallocate(a50);
+
+    tempPrint();
+    pPool->deallocate(a30);
+
+    tempPrint();
+    pPool->deallocate(a70);
+
+    tempPrint();
+    pPool->deallocate(a90);
+
+    tempPrint();
+    pPool->deallocate(a2);*/
 
 
     tempPrint();
-    void *a3 = pPool->allocate(30);
+    pPool->deallocate(a50);
 
     tempPrint();
-    void *a4 = pPool->allocate(30);
+    pPool->deallocate(a70);
+
+    tempPrint();
+    a70 = pPool->allocate(30);
+    tempPrint();
+    pPool->deallocate(a70);
 
 
     tempPrint();
-    pPool->deallocate(a4);
+    pPool->deallocate(a30);
+
+    tempPrint();
+    pPool->deallocate(a90);
 
     tempPrint();
     pPool->deallocate(a2);
-
-
-
-
-    tempPrint();
-    pPool->deallocate(a1);
-
-    tempPrint();
-    a1 = pPool->allocate(30);
-
-    tempPrint();
-    pPool->deallocate(a3);
-
-    tempPrint();
-    pPool->deallocate(a1);
 
 
     tempPrint();

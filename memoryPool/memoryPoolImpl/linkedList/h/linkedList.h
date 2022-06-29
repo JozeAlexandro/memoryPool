@@ -5,7 +5,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-#define LINEAR_POOL_SIZE 256
+#define LINEAR_POOL_SIZE 2560
 
 #define LINKED_LIST_DATA_TYPE_T sMemoryDescriptor
 

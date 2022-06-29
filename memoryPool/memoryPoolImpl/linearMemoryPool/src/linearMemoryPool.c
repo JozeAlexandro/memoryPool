@@ -27,7 +27,7 @@ sMemoryPoolIface *linearMemoryPoolMake( void )
 
 static void *linearMemoryPoolAllocate( size_t size )
 {
-    sMemoryBlockHeader *pMemoryDescriptor = findMemoryBlock( size, ALG_LAST_MATCH );
+    sMemoryBlockHeader *pMemoryDescriptor = findMemoryBlock( size, ALG_BEST_MATCH );
 
     /// @todo external checking if( ( uint8_t* )pMemoryDescriptor < ( mMemoryPool + LINEAR_POOL_SIZE ) )
     if( pMemoryDescriptor )
@@ -120,6 +120,8 @@ sMemoryBlockHeader * findMemoryBlock( size_t size, eAlgMatch algrtm )
     }
 }
 
+/// @todo Везде в алгоритмах добавить проверку на size >= block->size + sizeof (sMemoryBlockHeader) (like best alg)
+
 sMemoryBlockHeader *findFirstMatchMemoryBlock( size_t size )
 {
     sMemoryBlockHeader *pMemoryDescriptor = getFirstAvailMemBlock();
@@ -128,7 +130,7 @@ sMemoryBlockHeader *findFirstMatchMemoryBlock( size_t size )
     {
         if( !isMemoryRange( ( uint8_t* )pMemoryDescriptor ) )
             return NULL;
-        else if( size < pMemoryDescriptor->size )
+        else if( ( size + sizeof (sMemoryBlockHeader) ) < pMemoryDescriptor->size )
             return pMemoryDescriptor;
         else
             pMemoryDescriptor = getNextAvailMemBlock( pMemoryDescriptor );
@@ -137,9 +139,21 @@ sMemoryBlockHeader *findFirstMatchMemoryBlock( size_t size )
 
 sMemoryBlockHeader *findBestMatchMemoryBlock( size_t size )
 {
-    sMemoryBlockHeader *pMemoryDescriptor = getFirstAvailMemBlock();
+    sMemoryBlockHeader *pMemoryDescriptor = findFirstMatchMemoryBlock(size); /// @todo Такую же сделать для последнеего подходящего
 
+    sMemoryBlockHeader *best = pMemoryDescriptor;
 
+    while( true )
+    {
+        if(NULL == pMemoryDescriptor)
+            return best;
+        else if( !isMemoryRange( ( uint8_t* )pMemoryDescriptor ) )
+            return NULL;
+        else if( ( size + sizeof (sMemoryBlockHeader) ) < pMemoryDescriptor->size && best->size > pMemoryDescriptor->size )
+            best = pMemoryDescriptor;
+
+        pMemoryDescriptor = getNextAvailMemBlock( pMemoryDescriptor );
+    };
 
     return pMemoryDescriptor;
 }
@@ -151,12 +165,12 @@ sMemoryBlockHeader *findLastMatchMemoryBlock( size_t size )
     sMemoryBlockHeader *last = NULL;
 
     while( true )
-    {/// @todo if null
+    {
         if(NULL == pMemoryDescriptor)
             return last;
         else if( !isMemoryRange( ( uint8_t* )pMemoryDescriptor ) )
             return NULL;
-        else if( size < pMemoryDescriptor->size )
+        else if( ( size + sizeof (sMemoryBlockHeader) ) < pMemoryDescriptor->size )
             last = pMemoryDescriptor;
 
         pMemoryDescriptor = getNextAvailMemBlock( pMemoryDescriptor );
