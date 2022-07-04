@@ -3,9 +3,7 @@
 
 #include <stdint.h>
 #include "memoryPoolIface.h"
-#include "memoryPoolImpl/linkedList/h/linkedList.h"
 
-#include "../../linkedList/h/linkedList.h"
 
 #define LINEAR_POOL_SIZE 2560
 
@@ -57,6 +55,26 @@ static inline bool isMemoryRange( const uint8_t * const addr )
 {
     return ( addr >= mMemoryPool ) && ( addr <= mMemoryPool + LINEAR_POOL_SIZE );
 }
+
+/** ****************************************************************************
+ * @brief Проверка блока памяти по размеру.
+ *
+ * @details Проверяет, достаточно ли свободного места в блоке памяти для
+ * выделения @ref targetSize размера + размера заголовка.
+ *
+ * @param [in] block Блок памяти для проверки
+ * @param [in] targetSize Необходимое количество памяти в байтах
+ *
+ * @return true - блок памяти подходит, иначе false
+ * ****************************************************************************/
+static inline bool isSuitable( const sMemoryBlockHeader * const restrict block,
+                               size_t targetSize )
+{
+    return ( targetSize + sizeof( sMemoryBlockHeader ) ) < block->size;
+}
+
+
+/// @todo Вынести из inline
 
 /// @brief Получение указателя на первый свободный блок памяти
 static inline sMemoryBlockHeader * getFirstAvailMemBlock( void )

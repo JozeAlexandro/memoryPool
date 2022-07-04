@@ -1,6 +1,5 @@
 #include "../h/linearMemoryPool.h"
 #include "linearMemoryPoolP.h"
-#include "memoryPoolImpl/linkedList/h/linkedList.h"
 #include <string.h>
 
 /// public
@@ -86,7 +85,7 @@ static bool linearMemoryPoolDeallocate( void *pData )
 
 
 
-
+/// @test
 #include <stdio.h>
 void tempPrint()
 {
@@ -120,7 +119,8 @@ sMemoryBlockHeader * findMemoryBlock( size_t size, eAlgMatch algrtm )
     }
 }
 
-/// @todo Везде в алгоритмах добавить проверку на size >= block->size + sizeof (sMemoryBlockHeader) (like best alg)
+
+/// @todo Нужно бы избавиться от вечных циклов
 
 sMemoryBlockHeader *findFirstMatchMemoryBlock( size_t size )
 {
@@ -130,7 +130,7 @@ sMemoryBlockHeader *findFirstMatchMemoryBlock( size_t size )
     {
         if( !isMemoryRange( ( uint8_t* )pMemoryDescriptor ) )
             return NULL;
-        else if( ( size + sizeof (sMemoryBlockHeader) ) < pMemoryDescriptor->size )
+        else if( isSuitable( pMemoryDescriptor, size ) )
             return pMemoryDescriptor;
         else
             pMemoryDescriptor = getNextAvailMemBlock( pMemoryDescriptor );
@@ -149,7 +149,7 @@ sMemoryBlockHeader *findBestMatchMemoryBlock( size_t size )
             return best;
         else if( !isMemoryRange( ( uint8_t* )pMemoryDescriptor ) )
             return NULL;
-        else if( ( size + sizeof (sMemoryBlockHeader) ) < pMemoryDescriptor->size && best->size > pMemoryDescriptor->size )
+        else if( isSuitable( pMemoryDescriptor, size ) && best->size > pMemoryDescriptor->size )
             best = pMemoryDescriptor;
 
         pMemoryDescriptor = getNextAvailMemBlock( pMemoryDescriptor );
@@ -170,7 +170,7 @@ sMemoryBlockHeader *findLastMatchMemoryBlock( size_t size )
             return last;
         else if( !isMemoryRange( ( uint8_t* )pMemoryDescriptor ) )
             return NULL;
-        else if( ( size + sizeof (sMemoryBlockHeader) ) < pMemoryDescriptor->size )
+        else if( isSuitable( pMemoryDescriptor, size ) )
             last = pMemoryDescriptor;
 
         pMemoryDescriptor = getNextAvailMemBlock( pMemoryDescriptor );
