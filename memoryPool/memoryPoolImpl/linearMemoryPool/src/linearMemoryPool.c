@@ -26,7 +26,7 @@ sMemoryPoolIface *linearMemoryPoolMake( void )
 
 static void *linearMemoryPoolAllocate( size_t size )
 {
-    sMemoryBlockHeader *pMemoryDescriptor = findMemoryBlock( size, ALG_BEST_MATCH );
+    sMemoryBlockHeader *pMemoryDescriptor = findMemoryBlock( size, ALG_FIRST_MATCH );
 
     /// @todo external checking if( ( uint8_t* )pMemoryDescriptor < ( mMemoryPool + LINEAR_POOL_SIZE ) )
     if( pMemoryDescriptor )
@@ -120,35 +120,32 @@ sMemoryBlockHeader * findMemoryBlock( size_t size, eAlgMatch algrtm )
 }
 
 
-/// @todo Нужно бы избавиться от вечных циклов
+
 
 sMemoryBlockHeader *findFirstMatchMemoryBlock( size_t size )
 {
     sMemoryBlockHeader *pMemoryDescriptor = getFirstAvailMemBlock();
 
-    while( true )
+    while( isMemoryRange( ( uint8_t* )pMemoryDescriptor ) &&
+           !isSuitable( pMemoryDescriptor, size ) )
     {
-        if( !isMemoryRange( ( uint8_t* )pMemoryDescriptor ) )
-            return NULL;
-        else if( isSuitable( pMemoryDescriptor, size ) )
-            return pMemoryDescriptor;
-        else
-            pMemoryDescriptor = getNextAvailMemBlock( pMemoryDescriptor );
+        pMemoryDescriptor = getNextAvailMemBlock( pMemoryDescriptor );
     };
+
+    return pMemoryDescriptor;
 }
 
+/// @todo Нужно бы избавиться от вечных циклов
 sMemoryBlockHeader *findBestMatchMemoryBlock( size_t size )
 {
     sMemoryBlockHeader *pMemoryDescriptor = findFirstMatchMemoryBlock(size); /// @todo Такую же сделать для последнеего подходящего
 
     sMemoryBlockHeader *best = pMemoryDescriptor;
 
-    while( true )
+    while( isMemoryRange( ( uint8_t* )pMemoryDescriptor )  )
     {
         if(NULL == pMemoryDescriptor)
             return best;
-        else if( !isMemoryRange( ( uint8_t* )pMemoryDescriptor ) )
-            return NULL;
         else if( isSuitable( pMemoryDescriptor, size ) && best->size > pMemoryDescriptor->size )
             best = pMemoryDescriptor;
 
